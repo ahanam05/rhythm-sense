@@ -1,11 +1,13 @@
 require("dotenv").config();
 const querystring = require('querystring');
 const { stateStore } = require('../controller/login');
+const tokenManager = require('../utils/tokenManager');
 const { get } = require("http");
 
 const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
 const redirect_uri = "http://localhost:5001/mood";
+let access_token;
 
 async function getProfile(accessToken) {
     const response = await fetch('https://api.spotify.com/v1/me', {
@@ -18,7 +20,7 @@ async function getProfile(accessToken) {
     console.log(data);
   }
 
-module.exports.mood_get = async (req, res) => {
+mood_get = async (req, res) => {
     const {state, code, error } = req.query;
 
     if(error){
@@ -37,7 +39,7 @@ module.exports.mood_get = async (req, res) => {
         return res.status(400).send('State mismatch');
     }
 
-    //make post request to get access token
+    //POST request to get access token
     try {
         const tokenResponse = await fetch("https://accounts.spotify.com/api/token", {
           method: "POST",
@@ -58,19 +60,22 @@ module.exports.mood_get = async (req, res) => {
     
         const tokenData = await tokenResponse.json();
         const { access_token, refresh_token, expires_in } = tokenData;
+        tokenManager.setAccessToken(access_token);
     
         console.log("Access token:", access_token);
         console.log("Refresh token:", refresh_token);
         console.log("Expires in:", expires_in);
     
-        // Store tokens securely (e.g., in a database or session, not in memory in production) NOT COMPULSORY
         //getProfile(access_token);
         
       } catch (error) {
         console.error("Failed to exchange authorization code for access token:", error.message);
         res.status(500).send("Failed to exchange authorization code for access token.");
       }
-
-    //use access token to do xyz (follow guide and then do our playlist work)
     
+}
+
+module.exports = {
+    mood_get,
+    access_token
 }

@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const loginRoutes = require('./login');
 const moodRoutes = require('./mood');
-const playlistRoutes = require('./get-playlist');
+const playlistRoutes = require('./get-playlists');
 
 router.get('/', (req, res) => {
     res.render('landing');

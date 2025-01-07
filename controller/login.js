@@ -17,7 +17,7 @@ const generateRandomString = (length) => {
 const login_get = (req, res) => {
     const state = generateRandomString(16);
     stateStore.set(state, true);
-    const scope = 'user-read-private user-read-email';
+    const scope = 'user-read-private user-read-email playlist-modify-private';
 
   res.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({
