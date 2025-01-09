@@ -8,12 +8,10 @@ const Sentiment = require("sentiment");
 
 //now - testing functionality of searching for songs and adding to playlist and saving it, later i'll do the nlp stuff
 
-//NOW - try sentiment analysis of lines of text, develop a way to search based on sentiment score etc
-
 function getSentimentScore(text){
     const sentiment = new Sentiment();
     const result = sentiment.analyze(text);
-    return result;
+    return result.score;
 }
 
 const moodMappings = {
@@ -45,11 +43,14 @@ const moodMappings = {
 };
 
 function getMoodCategory(sentimentScore) {
+    console.log("In get category with score: ", sentimentScore);
     for (const [category, config] of Object.entries(moodMappings)) {
+        //console.log("ranges checking: ", config.range[0], config.range[1]);
         if (
             sentimentScore >= config.range[0] &&
-            sentimentScore <= config.range[1]
+            sentimentScore < config.range[1]
         ) {
+            console.log("Picked category: ", config.range[0], config.range[1])
             return { category, config };
         }
     }
@@ -109,6 +110,7 @@ async function findTracksByMood(sentimentScore, access_token, numberOfTracks = 5
     try {
         const { config } = getMoodCategory(sentimentScore);
         const matchedTracks = [];
+        const trackURIs = [];
         const trackIDs = new Set();
 
         const searchCombinations = generateRandomSearchCombinations(config, numberOfTracks * 2);
@@ -146,6 +148,7 @@ async function findTracksByMood(sentimentScore, access_token, numberOfTracks = 5
                 const randomTrack = searchResult.tracks.items[
                     Math.floor(Math.random() * searchResult.tracks.items.length)
                 ];
+                //console.log(randomTrack);
 
                 if(!trackIDs.has(randomTrack.id)){
                     trackIDs.add(randomTrack.id);
@@ -156,11 +159,12 @@ async function findTracksByMood(sentimentScore, access_token, numberOfTracks = 5
                         url: randomTrack.external_urls.spotify,
                         popularity: randomTrack.popularity
                     });
+                    trackURIs.push(randomTrack.uri);
                 }
             }
         }
 
-        return matchedTracks;
+        return { trackIDs: Array.from(trackIDs), matchedTracks, trackURIs};
 
     } catch (error) {
         console.error('Error:', error);
@@ -169,7 +173,8 @@ async function findTracksByMood(sentimentScore, access_token, numberOfTracks = 5
 }
 
 //how to make the playlist private?
-async function createPlaylist(access_token, playlist_name) {
+async function createPlaylist(access_token) {
+    //give different name depending on mood?
     try {
         const userID = await getUserId(access_token);
         console.log("User ID: ", userID);
@@ -180,17 +185,54 @@ async function createPlaylist(access_token, playlist_name) {
                 Authorization: 'Bearer ' + access_token
             },
             body: JSON.stringify({
-                name: playlist_name,
+                name: "your new fav songs",
                 description: "some tracks curated for your current vibe",
                 public: false
             })
         })
         const data = await response.json();
         //spotify playlist id
-        console.log(data.id);
+        console.log("Playlist ID: ", data.id);
+        return data.id;
     }
     catch (err) {
         console.log("Error occurred: ", err);
+    }
+}
+
+async function addToPlaylist(playlistID, access_token, trackURIs){
+    try{
+        if (!trackURIs || trackURIs.length === 0) {
+            throw new Error("No track URIs provided.");
+        }
+
+        console.log("User ID: ", playlistID);
+        console.log("Playlist ID: ", playlistID);
+        console.log("Track URIs: ", trackURIs);
+
+        const url = `https://api.spotify.com/v1/playlists/${playlistID}/tracks`;
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: 'Bearer ' + access_token
+            },
+            body: JSON.stringify({
+                "uris": trackURIs,
+                "position": 0
+            })
+        });
+
+        //console.log(`Response status: ${response.status} - ${response.statusText}`);
+        if (response.status === 201) {
+            console.log("Tracks added successfully");
+        } else {
+            const data = await response.json();
+            console.log(data);
+        }
+    }
+    catch(err){
+        console.log("Error occurred while adding to playlist: ", err);
     }
 }
 
@@ -199,11 +241,16 @@ router.get('/get-playlists', async (req, res) => {
     console.log("Received access token: ", access_token);
     res.render('playlists');
 
-    //createPlaylist(access_token, "Rhythm Sense 1"); - THIS WORKS
-    const text = "I'm happy and grateful for the life that I've been given";
+    
+    const text = "I'm a little frustrated and impatient, waiting for things to fall into place.";
     const sentimentScore = getSentimentScore(text);
-    const tracks = await findTracksByMood(sentimentScore, access_token, 10);
-    console.log("Tracks: ", tracks);
+    //console.log(sentimentScore);
+    const {trackIDs, matchedTracks, trackURIs} = await findTracksByMood(sentimentScore, access_token, 10);
+    console.log("Tracks: ", matchedTracks);
+    //console.log("Track IDs: ", trackIDs);
+    //console.log("Track URIs: ", trackURIs);
+    const playlistID = await createPlaylist(access_token); 
+    addToPlaylist(playlistID, access_token, trackURIs);
 })
 
 module.exports = router;
