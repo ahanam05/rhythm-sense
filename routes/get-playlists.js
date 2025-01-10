@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const tokenManager = require('../utils/tokenManager');
+//const moodMappings = require('../models/MoodMappings');
+const moodMappings = require('../models/MoodMappings');
 const Sentiment = require("sentiment");
 
 //get the query from the mood.ejs page, analyse it using an nlp library, map the mood to genre and pick a playlist of 5 songgs
@@ -13,36 +15,9 @@ function getSentimentScore(text){
     return normalizedScore;
 }
 
-const moodMappings = {
-    veryNegative: {
-        range: [-5, -3],
-        artists: ['Radiohead', 'Linkin Park', 'Nirvana', 'Billie Eilish'],
-        genres: ['grunge', 'metal', 'post rock']
-    },
-    negative: {
-        range: [-3, -1],
-        artists: ['Adele', 'Lana Del Rey', 'Bon Iver', 'The Smiths'],
-        genres: ['indie', 'folk', 'alternative']
-    },
-    neutral: {
-        range: [-1, 1],
-        artists: ['Coldplay', 'Ludovico Einaudi', 'Olivia Rodrigo', 'The Cinematic Orchestra'],
-        genres: ['ambient', 'classical', 'pop']
-    },
-    positive: {
-        range: [1, 3],
-        artists: ['Pharrell Williams', 'Bruno Mars', 'Sufjan Stevens', 'John Mayer'],
-        genres: ['pop', 'funk', 'rock']
-    },
-    veryPositive: {
-        range: [3, 5],
-        artists: ['Daft Punk', 'Calvin Harris', 'Avicii', 'Taylor Swift'],
-        genres: ['dance', 'edm', 'pop']
-    }
-};
-
-function getMoodCategory(sentimentScore) {
+async function getMoodCategory(sentimentScore) {
     console.log("In get category with score: ", sentimentScore);
+    
     for (const [category, config] of Object.entries(moodMappings)) {
         //console.log("ranges checking: ", config.range[0], config.range[1]);
         if (
@@ -105,7 +80,7 @@ function generateRandomSearchCombinations(config, count) {
 
 async function findTracksByMood(sentimentScore, access_token, numberOfTracks = 5) {
     try {
-        const { config } = getMoodCategory(sentimentScore);
+        const { config } = await getMoodCategory(sentimentScore);
         const matchedTracks = [];
         const trackURIs = [];
         const trackIDs = new Set();
