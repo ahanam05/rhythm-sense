@@ -9,18 +9,8 @@ const client_secret = process.env.CLIENT_SECRET;
 const redirect_uri = "http://localhost:5001/mood";
 let access_token;
 
-async function getProfile(accessToken) {
-    const response = await fetch('https://api.spotify.com/v1/me', {
-      headers: {
-        Authorization: 'Bearer ' + accessToken
-      }
-    });
-  
-    const data = await response.json();
-    console.log(data);
-  }
-
 mood_get = async (req, res) => {
+    console.log(req.query);
     const {state, code, error } = req.query;
 
     if(error){
@@ -32,7 +22,7 @@ mood_get = async (req, res) => {
     if(stateStore.has(state)){
         console.log('States match');
         stateStore.delete(state);
-        res.render('mood');
+        res.render('mood', { state: state });
     }
     else{
         console.error('State mismatch');
@@ -65,8 +55,6 @@ mood_get = async (req, res) => {
         console.log("Access token:", access_token);
         console.log("Refresh token:", refresh_token);
         console.log("Expires in:", expires_in);
-    
-        //getProfile(access_token);
         
       } catch (error) {
         console.error("Failed to exchange authorization code for access token:", error.message);

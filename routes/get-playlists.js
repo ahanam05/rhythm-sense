@@ -6,12 +6,11 @@ const Sentiment = require("sentiment");
 //get the query from the mood.ejs page, analyse it using an nlp library, map the mood to genre and pick a playlist of 5 songgs
 //create a playlist and save it. display it as an iframe. 
 
-//now - testing functionality of searching for songs and adding to playlist and saving it, later i'll do the nlp stuff
-
 function getSentimentScore(text){
     const sentiment = new Sentiment();
     const result = sentiment.analyze(text);
-    return result.score;
+    const normalizedScore = Math.max(-5, Math.min(result.score, 5));
+    return normalizedScore;
 }
 
 const moodMappings = {
@@ -91,11 +90,9 @@ function generateRandomSearchCombinations(config, count) {
     const artists = [...config.artists];
     const genres = [...config.genres];
 
-    // Shuffle both arrays
     shuffleArray(artists);
     shuffleArray(genres);
 
-    // Create random combinations
     for (let i = 0; i < count; i++) {
         combinations.push({
             artist: artists[i % artists.length],
@@ -172,6 +169,18 @@ async function findTracksByMood(sentimentScore, access_token, numberOfTracks = 5
     }
 }
 
+async function getProfile(access_token) {
+    const response = await fetch('https://api.spotify.com/v1/me', {
+      headers: {
+        Authorization: 'Bearer ' + access_token
+      }
+    });
+  
+    const data = await response.json();
+    console.log("Display name: ", data.display_name);
+    return data.display_name;
+}
+
 //how to make the playlist private?
 async function createPlaylist(access_token) {
     //give different name depending on mood?
@@ -236,21 +245,24 @@ async function addToPlaylist(playlistID, access_token, trackURIs){
     }
 }
 
-router.get('/get-playlists', async (req, res) => {
+router.post('/get-playlists', async (req, res) => {
+    const { mood, state } = req.body;
+    console.log('Mood:', mood);
+
     const access_token = tokenManager.getAccessToken();
     console.log("Received access token: ", access_token);
-    res.render('playlists');
-
     
-    const text = "I'm a little frustrated and impatient, waiting for things to fall into place.";
-    const sentimentScore = getSentimentScore(text);
+    const sentimentScore = getSentimentScore(mood);
     //console.log(sentimentScore);
     const {trackIDs, matchedTracks, trackURIs} = await findTracksByMood(sentimentScore, access_token, 10);
     console.log("Tracks: ", matchedTracks);
     //console.log("Track IDs: ", trackIDs);
     //console.log("Track URIs: ", trackURIs);
+
     const playlistID = await createPlaylist(access_token); 
     addToPlaylist(playlistID, access_token, trackURIs);
+    const displayName = await getProfile(access_token);
+    res.render('playlists', {playlistID, displayName});
 })
 
 module.exports = router;

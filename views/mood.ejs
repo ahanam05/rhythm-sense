@@ -7,8 +7,10 @@
 </head>
 <body>
     <h1> Describe how you're feeling </h1>
-    <!--input a sentence. use an nlp library to get the general sentiment/adjective. create a playlist of 5 songs based on this keyword 
-    and display (iframe). map moods to genres as well-->
-    <a href="/get-playlists"> <button> View Results </button></a>
+    <form action="/get-playlists" method="POST">
+        <input type="text" name="mood" required />
+        <input type="hidden" name="state" value="<%= state %>" />
+        <button type="submit">View Results</button>
+    </form>
 </body>
 </html>
