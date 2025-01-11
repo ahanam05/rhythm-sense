@@ -4,13 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rhythm Sense</title>
+    <link rel="stylesheet" href="/css/mood.css">
 </head>
 <body>
-    <h1> Describe how you're feeling </h1>
-    <form action="/get-playlists" method="POST">
-        <input type="text" name="mood" required />
-        <input type="hidden" name="state" value="<%= state %>" />
-        <button type="submit">View Results</button>
-    </form>
+    <div id="form-container">
+        <h1 class="mood-text">How are you feeling today?</h1>
+        <form action="/get-playlists" method="POST">
+            <input class="mood-input" type="text" name="mood" placeholder="Enter your mood..." required />
+            <input type="hidden" name="state" value="<%= state %>" />
+            <button class="get-started-btn" type="submit">View Results</button>
+        </form>
+    </div>
 </body>
 </html>

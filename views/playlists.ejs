@@ -4,12 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rhythm Sense</title>
+    <link rel="stylesheet" href="/css/playlists.css">
 </head>
 <body>
-    <h1> Results Page </h1>
 
-    <p> <%- displayName%>, Here's a new playlist for you! </p>
-    <iframe src="https://open.spotify.com/embed/playlist/<%- playlistID %>" width="300" height="380" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+    <div id="results-container">
+        <h1 class="rising-text">Check this out!</h1>
+        <p class="personalized-message"><%- displayName%>, we curated this just for you!</p>
+        <iframe 
+            src="https://open.spotify.com/embed/playlist/<%- playlistID %>" 
+            width="800" 
+            height="480" 
+            frameborder="0" 
+            allowtransparency="true" 
+            allow="encrypted-media">
+        </iframe>
+    </div>
 
 </body>
 </html>

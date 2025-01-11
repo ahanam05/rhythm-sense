@@ -1,0 +1,56 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+    margin: 0;
+}
+
+#form-container {
+    text-align: center;
+}
+
+.mood-text {
+    font-size: 62px;
+    font-weight: bold;
+    color: #083344;
+    margin-bottom: 20px; 
+}
+
+.mood-input {
+    width: 300px;
+    padding: 10px 15px;
+    font-size: 16px;
+    border: 2px solid #083344;
+    border-radius: 5px;
+    margin-bottom: 20px; 
+    transition: all 0.3s ease;
+}
+
+.mood-input:focus {
+    border-color: #06b6d4;
+    outline: none;
+    transform: scale(1.02);
+}
+
+.get-started-btn {
+    background-color: #083344;
+    color: #f0f0f0;
+    border: none;
+    padding: 15px 30px;
+    font-size: 20px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.get-started-btn:hover {
+    background-color: #06b6d4;
+    transform: translateY(-2px);
+}
+
