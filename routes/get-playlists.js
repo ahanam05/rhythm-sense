@@ -1,12 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const tokenManager = require('../utils/tokenManager');
-//const moodMappings = require('../models/MoodMappings');
+const imageToBase64 = require('image-to-base64');
+const path = require('path');
 const moodMappings = require('../models/MoodMappings');
 const Sentiment = require("sentiment");
-
-//get the query from the mood.ejs page, analyse it using an nlp library, map the mood to genre and pick a playlist of 5 songgs
-//create a playlist and save it. display it as an iframe. 
 
 function getSentimentScore(text){
     const sentiment = new Sentiment();
@@ -19,7 +17,6 @@ async function getMoodCategory(sentimentScore) {
     console.log("In get category with score: ", sentimentScore);
     
     for (const [category, config] of Object.entries(moodMappings)) {
-        //console.log("ranges checking: ", config.range[0], config.range[1]);
         if (
             sentimentScore >= config.range[0] &&
             sentimentScore < config.range[1]
@@ -86,10 +83,8 @@ async function findTracksByMood(sentimentScore, access_token, numberOfTracks = 5
         const trackIDs = new Set();
 
         const searchCombinations = generateRandomSearchCombinations(config, numberOfTracks * 2);
-        //console.log("Search combinations: ", searchCombinations);
 
         for (const combo of searchCombinations) {
-            //console.log("Combo: ", combo);
             if (matchedTracks.size >= numberOfTracks) break;
 
             const baseURL = 'https://api.spotify.com/v1/search';
@@ -110,7 +105,6 @@ async function findTracksByMood(sentimentScore, access_token, numberOfTracks = 5
             }
 
             const searchResult = await response.json();
-            //console.log("Search result: ", searchResult);
 
             if(!searchResult){
                 continue;
@@ -120,7 +114,6 @@ async function findTracksByMood(sentimentScore, access_token, numberOfTracks = 5
                 const randomTrack = searchResult.tracks.items[
                     Math.floor(Math.random() * searchResult.tracks.items.length)
                 ];
-                //console.log(randomTrack);
 
                 if(!trackIDs.has(randomTrack.id)){
                     trackIDs.add(randomTrack.id);
@@ -175,7 +168,6 @@ async function createPlaylist(access_token) {
             })
         })
         const data = await response.json();
-        //spotify playlist id
         console.log("Playlist ID: ", data.id);
         return data.id;
     }
@@ -207,7 +199,6 @@ async function addToPlaylist(playlistID, access_token, trackURIs){
             })
         });
 
-        //console.log(`Response status: ${response.status} - ${response.statusText}`);
         if (response.status === 201) {
             console.log("Tracks added successfully");
         } else {
@@ -220,6 +211,67 @@ async function addToPlaylist(playlistID, access_token, trackURIs){
     }
 }
 
+async function getBase64(path){
+    try{
+        const response = await imageToBase64(path);
+        console.log("Base64 generated");
+        return response;
+    }catch(err){
+        console.log("Error getting Base64 string: ", err);
+    }
+}
+
+function getImagePath(sentimentScore){
+    if(sentimentScore < -3){
+        const imagePath = path.join(__dirname, '..', 'public', 'images', 'veryNegative.jpg');
+        return imagePath;
+    }
+    else if(sentimentScore < -1){
+        const imagePath = path.join(__dirname, '..', 'public', 'images', 'negative.jpg');
+        return imagePath
+    }
+    else if(sentimentScore < 1){
+        const imagePath = path.join(__dirname, '..', 'public', 'images', 'neutral.jpg');
+        return imagePath
+    }
+    else if(sentimentScore < 3){
+        const imagePath = path.join(__dirname, '..', 'public', 'images', 'positive.jpg');
+        return imagePath
+    }else{
+        const imagePath = path.join(__dirname, '..', 'public', 'images', 'veryPositive.jpg');
+        return imagePath
+    }
+}
+
+async function addCoverImage(playlistID, access_token, sentimentScore){
+    try{
+        const url = `https://api.spotify.com/v1/playlists/${playlistID}/images`;
+        const imagePath = getImagePath(sentimentScore);
+        const imageBase64 = await getBase64(imagePath);
+
+        if (imageBase64.startsWith('data:image/jpeg;base64,')) {
+            imageBase64 = imageBase64.split(',')[1];
+        }
+
+        const response = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                "Content-Type": "image/jpeg",
+                Authorization: 'Bearer ' + access_token
+            },
+            body: imageBase64
+        })
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        console.log("Playlist image added");
+    }catch(err){
+        console.log("Error while adding cover image: ", err);
+    }
+}
+
 router.post('/get-playlists', async (req, res) => {
     const { mood, state } = req.body;
     console.log('Mood:', mood);
@@ -228,14 +280,12 @@ router.post('/get-playlists', async (req, res) => {
     console.log("Received access token: ", access_token);
     
     const sentimentScore = getSentimentScore(mood);
-    //console.log(sentimentScore);
     const {trackIDs, matchedTracks, trackURIs} = await findTracksByMood(sentimentScore, access_token, 10);
     console.log("Tracks: ", matchedTracks);
-    //console.log("Track IDs: ", trackIDs);
-    //console.log("Track URIs: ", trackURIs);
 
     const playlistID = await createPlaylist(access_token); 
-    addToPlaylist(playlistID, access_token, trackURIs);
+    await addToPlaylist(playlistID, access_token, trackURIs);
+    await addCoverImage(playlistID, access_token, sentimentScore);
     const displayName = await getProfile(access_token);
     res.render('playlists', {playlistID, displayName});
 })
