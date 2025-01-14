@@ -3,7 +3,7 @@ const querystring = require('querystring');
 
 const stateStore = new Map();
 const client_id = process.env.CLIENT_ID;
-const redirect_uri = "http://localhost:5001/mood";
+const redirect_uri = "https://rhythm-sense.onrender.com/mood";
 
 const generateRandomString = (length) => {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -29,7 +29,6 @@ const login_get = (req, res) => {
     }));
 
     console.log(`State stored: ${state}`);
-    //compare this state sent with the state received in the redirect uri
 }
 
 module.exports = {
