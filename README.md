@@ -22,3 +22,35 @@ Rhythm Sense is a dynamic web application that creates personalized Spotify play
 ### **Frontend**
 - **EJS (Embedded JavaScript)**: For rendering dynamic web pages.
 - **HTML/CSS/JavaScript**: Used to structure and style the frontend.
+
+## **Usage**
+### **Log In**
+- Click the **"Log in with Spotify"** button and authorize the app to access your Spotify account.
+
+### **Describe Your Mood**
+- Enter a sentence describing how you feel (e.g., _"I feel relaxed and happy"_).
+
+### **View and Save Playlist**
+- The app generates a playlist based on your mood and saves it to your Spotify account. 
+
+### **Enjoy Your Music**
+- Open Spotify to listen to your personalized playlist.
+
+---
+
+## **Deployed Version**
+The live app is available at:
+[https://rhythm-sense.onrender.com](https://rhythm-sense.onrender.com)
+
+---
+
+## **Known Issues**
+- **Cold Starts**: The deployed app on Render might experience delays during initial loads due to server cold starts.
+
+---
+
+## **Future Enhancements**
+- Add more NLP capabilities for advanced mood detection.
+- Include playlist recommendations based on user listening history.
+- Introduce a "share playlist" feature for social interactions.
+- Create a mobile-friendly UI.
