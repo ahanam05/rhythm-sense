@@ -6,7 +6,8 @@ const { get } = require("http");
 
 const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
-const redirect_uri = "http://localhost:5001/mood";
+const redirect_uri = 'https://rhythm-sense.onrender.com/mood';
+//'http://localhost:5001/mood';
 let access_token;
 
 mood_get = async (req, res) => {
@@ -29,7 +30,6 @@ mood_get = async (req, res) => {
         return res.status(400).send('State mismatch');
     }
 
-    //POST request to get access token
     try {
         const tokenResponse = await fetch("https://accounts.spotify.com/api/token", {
           method: "POST",

@@ -3,9 +3,8 @@ const querystring = require('querystring');
 
 const stateStore = new Map();
 const client_id = process.env.CLIENT_ID;
-const redirect_uri = process.env.NODE_ENV === 'production'
-    ? 'https://rhythm-sense.onrender.com/mood'
-    : 'http://localhost:5001/mood';
+const redirect_uri = 'https://rhythm-sense.onrender.com/mood';
+//'http://localhost:5001/mood';
 
 const generateRandomString = (length) => {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
