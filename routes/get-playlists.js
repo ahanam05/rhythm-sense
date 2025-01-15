@@ -6,6 +6,7 @@ const path = require('path');
 const moodMappings = require('../models/MoodMappings');
 const Sentiment = require("sentiment");
 
+//function to assign sentiment score to user-entered mood
 function getSentimentScore(text){
     const sentiment = new Sentiment();
     const result = sentiment.analyze(text);
@@ -13,6 +14,7 @@ function getSentimentScore(text){
     return normalizedScore;
 }
 
+//function to determine category based on score
 async function getMoodCategory(sentimentScore) {
     console.log("In get category with score: ", sentimentScore);
     
@@ -31,6 +33,7 @@ async function getMoodCategory(sentimentScore) {
     };
 }
 
+//function to get spotify user id
 async function getUserId(access_token) {
     try {
         const response = await fetch("https://api.spotify.com/v1/me", {
@@ -75,6 +78,7 @@ function generateRandomSearchCombinations(config, count) {
     return combinations;
 }
 
+//function to select tracks for playlist
 async function findTracksByMood(sentimentScore, access_token, numberOfTracks = 5) {
     try {
         const { config } = await getMoodCategory(sentimentScore);
@@ -137,6 +141,7 @@ async function findTracksByMood(sentimentScore, access_token, numberOfTracks = 5
     }
 }
 
+//function to get the user's profile details
 async function getProfile(access_token) {
     const response = await fetch('https://api.spotify.com/v1/me', {
       headers: {
@@ -149,9 +154,7 @@ async function getProfile(access_token) {
     return data.display_name;
 }
 
-//how to make the playlist private?
 async function createPlaylist(access_token) {
-    //give different name depending on mood?
     try {
         const userID = await getUserId(access_token);
         console.log("User ID: ", userID);
