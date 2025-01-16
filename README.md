@@ -46,7 +46,11 @@ The live app is available at:
 
 ## **Known Issues**
 - **Cold Starts**: The deployed app on Render might experience delays during initial loads due to server cold starts.
-
+- **Spotify API Access Restrictions**:
+  - The Spotify API used in this project is currently in **development mode**, which restricts usage to:
+    - The app owner (developer account).
+    - Up to 25 additional users listed in the app settings under **Users and Access** in the Spotify Developer Dashboard.
+  - This limitation means only registered accounts can log in and use the app. To request access to try the app, please send an email to ahanam05@gmail.com. 
 ---
 
 ## **Future Enhancements**
